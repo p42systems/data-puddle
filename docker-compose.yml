@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "YourStrong@Passw0rd"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./sql-scripts:/usr/src/sql-scripts
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "YourStrong@Passw0rd", "-Q", "SELECT 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  data-loader:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    command: >
+      /bin/bash -c "
+      /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P YourStrong@Passw0rd -i /usr/src/sql-scripts/init.sql &&
+      /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P YourStrong@Passw0rd -i /usr/src/sql-scripts/load-sample-data.sql
+      "
+    volumes:
+      - ./sql-scripts:/usr/src/sql-scripts
