@@ -1,13 +1,18 @@
-CREATE DATABASE AdventureWorks;
+:on error exit
+
+PRINT 'Creating login and user...';
 GO
 
-USE AdventureWorks;
+IF NOT EXISTS(SELECT * FROM sys.sql_logins WHERE name = 'analyst')
+BEGIN
+    CREATE LOGIN analyst WITH PASSWORD = 'Analyst!Passw0rd';
+    PRINT 'Login created: analyst';
+END
+ELSE
+BEGIN
+    PRINT 'Login already exists: analyst';
+END
 GO
 
-CREATE LOGIN analyst WITH PASSWORD = 'P@ssw0rd123';
-CREATE USER analyst FOR LOGIN analyst;
-GO
-
-EXEC sp_addrolemember 'db_datareader', 'analyst';
-EXEC sp_addrolemember 'db_datawriter', 'analyst';
+ALTER SERVER ROLE processadmin ADD MEMBER analyst;
 GO

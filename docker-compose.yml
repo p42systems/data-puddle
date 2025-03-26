@@ -4,18 +4,19 @@ services:
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      ACCEPT_EULA: Y
-      SA_PASSWORD: "YourStrong@Passw0rd"
-      MSSQL_PID: Developer
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd123###"
+      MSSQL_PID: "Developer"
     ports:
       - "1433:1433"
     volumes:
-      - ./sql-scripts:/usr/src/sql-scripts
+      - ./backups:/var/opt/mssql/backup
     healthcheck:
-      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "YourStrong@Passw0rd", "-Q", "SELECT 1" ]
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/1433 || exit 1'"]
       interval: 5s
-      timeout: 10s
-      retries: 10
+      timeout: 5s
+      retries: 15
+      start_period: 30s
 
   data-loader:
     image: mcr.microsoft.com/mssql-tools
@@ -23,9 +24,23 @@ services:
       sql-server:
         condition: service_healthy
     command: >
-      /bin/bash -c "
-      /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P YourStrong@Passw0rd -i /usr/src/sql-scripts/init.sql &&
-      /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P YourStrong@Passw0rd -i /usr/src/sql-scripts/load-sample-data.sql
+      bash -c "
+      echo '=== VALIDATING TOOLS ===';
+      ls -l /opt/mssql-tools/bin/sqlcmd;
+      echo '=== WAITING FOR SQL SERVER ===';
+      timeout 90 bash -c 'until /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" &> /dev/null; do sleep 2; done';
+      echo '=== RESTORING DATABASE ===';
+      /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P \"$$SA_PASSWORD\" -Q \"
+      RESTORE DATABASE AdventureWorks2019
+      FROM DISK = N'/var/opt/mssql/backup/AdventureWorks2019.bak'
+      WITH
+        MOVE 'AdventureWorks2019' TO '/var/opt/mssql/data/AdventureWorks2019.mdf',
+        MOVE 'AdventureWorks2019_log' TO '/var/opt/mssql/data/AdventureWorks2019.ldf',
+        REPLACE,
+        STATS = 5;\"
+      echo '=== RESTORE COMPLETE ===';
       "
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd123###"
     volumes:
-      - ./sql-scripts:/usr/src/sql-scripts
+      - ./backups:/var/opt/mssql/backup
