@@ -112,8 +112,3 @@ graph TD
 - [AdventureWorks Sample Reports](https://github.com/microsoft/powerbi-desktop-samples)
 - [Power BI REST API Docs](https://learn.microsoft.com/en-us/rest/api/power-bi/)
 - [SQL Server Linux Tips](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-overview)
-
----
-
-**Maintainer**: Doug <doug@p42systems.com>  
-**Last Updated**: {{DATE}}
