@@ -48,4 +48,58 @@ catch {
     exit 1
 }
 
-# Rest of script remains unchanged from previous version...
+# Create workspace with validation
+try {
+    $workspace = New-PowerBIWorkspace -Name $WorkspaceName -Verbose
+    if (-not $workspace.Id) {
+        throw "Workspace creation succeeded but returned invalid ID"
+    }
+    Write-Host "Workspace created: $($workspace.Id)"
+}
+catch {
+    Write-Error "Workspace creation failed: $_"
+    exit 1
+}
+
+# Add admin user with workspace ID validation
+$retryCount = 0
+do {
+    try {
+        Add-PowerBIWorkspaceUser -WorkspaceId $workspace.Id -UserEmail $AdminEmail -AccessRight Admin -Verbose
+        Write-Host "Admin permissions added for $AdminEmail"
+        break
+    }
+    catch {
+        $retryCount++
+        if ($retryCount -lt 3) {
+            Write-Warning "Retrying permission assignment... (Attempt $retryCount)"
+            Start-Sleep -Seconds 5
+        }
+        else {
+            Write-Error "Failed to add user permissions after 3 attempts: $_"
+            exit 1
+        }
+    }
+} while ($true)
+
+# Create dataset with connection validation
+try {
+    $datasetParams = @{
+        Name = "AdventureWorks_Connection"
+        DatasourceConnectionString = $SqlConnectionString
+        Verbose = $true
+    }
+
+    $dataset = New-PowerBIDataset @datasetParams -WorkspaceId $workspace.Id
+    Write-Host "Dataset created: $($dataset.Id)"
+}
+catch {
+    Write-Error "Dataset creation failed: $_"
+    exit 1
+}
+
+Write-Host "`n=== Deployment Successful ==="
+Write-Host "Workspace Name: $WorkspaceName"
+Write-Host "Workspace ID:   $($workspace.Id)"
+Write-Host "Dataset ID:     $($dataset.Id)"
+Write-Host "Admin Email:    $AdminEmail`n"
