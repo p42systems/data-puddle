@@ -86,7 +86,7 @@ do {
 try {
     $datasetParams = @{
         Name = "AdventureWorks_Connection"
-        DatasourceConnectionString = $SqlConnectionString
+        ConnectionString = $SqlConnectionString
         Verbose = $true
     }
 
