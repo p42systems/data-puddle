@@ -36,7 +36,13 @@ services:
         MOVE 'AdventureWorks2019_log' TO '/var/opt/mssql/data/AdventureWorks2019.ldf',
         REPLACE,
         STATS = 5;\"
-      echo '=== RESTORE COMPLETE ===';
+        echo '=== CREATING ANALYST USER ===';
+        /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P \"$$SA_PASSWORD\" -Q \"
+        USE AdventureWorks2019;
+        CREATE LOGIN analyst WITH PASSWORD = 'Str0ngP@ssw0rd!';
+        CREATE USER analyst FOR LOGIN analyst;
+        ALTER ROLE db_datareader ADD MEMBER analyst;\";
+        echo '=== INITIALIZATION COMPLETE ===';
       "
     environment:
       SA_PASSWORD: "YourStrong!Passw0rd123###"
