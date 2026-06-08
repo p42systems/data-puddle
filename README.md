@@ -13,7 +13,7 @@ A containerized SQL Server environment with Power BI integration for data analys
 
 ### 1. Clone Repository
 ```powershell
-git clone https://github.com/eko-sandbox/eko-sandbox.git
+git clone https://github.com/p42systems/data-puddle.git
 cd eko-sandbox
 ```
 
