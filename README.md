@@ -14,7 +14,7 @@ A containerized SQL Server environment with Power BI integration for data analys
 ### 1. Clone Repository
 ```powershell
 git clone https://github.com/p42systems/data-puddle.git
-cd eko-sandbox
+cd data-puddle
 ```
 
 ### 2. Initialize Environment
@@ -65,37 +65,6 @@ cd powerbi-automation
 ### 3. Publish Sample Report
 1. Build report using `Person.Person` and `Sales.SalesOrderHeader` tables
 2. **Publish** → Select "AdventureWorks_Sandbox" workspace
-
-## Troubleshooting
-
-### Common SQL Server Issues
-
-
-**Error**: `Cannot open backup device`  
-**Fix**:
-```powershell
-# Verify file permissions
-icacls ".\backups" /grant "Everyone:(OI)(CI)F"
-```
-
-### Power BI Issues
-
-**Error**: `Module conflicts`  
-**Fix**:
-```powershell
-# Close all PowerShell sessions
-Get-Process powershell | Stop-Process -Force
-
-# Clean install modules
-Install-Module -Name MicrosoftPowerBIMgmt -Force -AllowClobber
-```
-
-**Error**: `Dataset refresh failed`  
-**Verify Connection**:
-```powershell
-Test-NetConnection localhost -Port 1433
-```
-
 
 ## Architecture
 
